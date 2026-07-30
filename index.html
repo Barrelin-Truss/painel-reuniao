@@ -3,6 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1F3864">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
 <title>Painel de Operações — TRUSS (interno)</title>
 <style>
   :root {
@@ -185,6 +190,44 @@
   .m-desc { background:#f7f9fc; border:1px solid var(--borde); border-radius:9px;
             padding:12px 14px; font-size:.82rem; white-space:pre-wrap; max-height:260px; overflow:auto; }
   footer { text-align:center; font-size:.72rem; color:var(--gris); padding:18px; }
+
+  /* ---------- celular ---------- */
+  #btn-filtros { display:none; }
+  @media (max-width:640px){
+    main { padding:12px 10px 40px; }
+    header { padding:14px 16px 12px; }
+    header h1 { font-size:1.05rem; }
+    .h-fechas { font-size:.62rem; }
+    .btn-fs { padding:5px 10px; font-size:.68rem; }
+    .kpis { grid-template-columns:repeat(2,1fr); gap:8px; }
+    .kpi { padding:10px 12px 9px; }
+    .kpi .num { font-size:1.4rem; }
+    .cmp { gap:8px; }
+    .cmp .num { font-size:1.1rem; }
+    .cmp .col.atual .num { font-size:1.4rem; }
+    .faixa { font-size:.7rem; padding:7px 10px; gap:4px 10px; }
+    .card { padding:14px 14px; }
+    /* filtros recolhidos por padrao */
+    #btn-filtros { display:inline-block; }
+    #sec-filtros .filtros { display:none; }
+    #sec-filtros.aberto .filtros { display:grid; }
+    /* tabela vira cartoes empilhados */
+    .scroll-tabla { border:none; max-height:none; overflow:visible; }
+    .scroll-tabla thead { display:none; }
+    .scroll-tabla table, .scroll-tabla tbody, .scroll-tabla tr, .scroll-tabla td { display:block; width:100%; }
+    .scroll-tabla tr { background:#fff; border:1px solid var(--borde); border-radius:10px;
+                       margin-bottom:10px; padding:10px 12px; box-shadow:var(--sombra); }
+    .scroll-tabla tbody tr:hover td { background:transparent; }
+    .scroll-tabla td { border:none; padding:2px 0; display:flex; gap:8px; align-items:baseline; }
+    .scroll-tabla td::before { content:attr(data-label); font-size:.6rem; font-weight:700;
+        color:var(--gris); text-transform:uppercase; letter-spacing:.4px; min-width:62px; flex-shrink:0; }
+    .scroll-tabla td[data-label="Assunto"] { font-weight:600; }
+    .num-td { text-align:left; }
+    /* ficha em tela cheia */
+    .overlay { padding:0; }
+    .modal { border-radius:0; min-height:100vh; max-width:none; }
+    .m-grid { grid-template-columns:1fr 1fr; }
+  }
 </style>
 </head>
 <body>
@@ -193,7 +236,7 @@
     <h1>Painel de Operações — TRUSS<span class="tag-int">USO INTERNO</span>
       <small>Todos os chamados do Milvus · clique num ticket para ver a ficha completa</small></h1>
     <div class="h-dir">
-      <div class="h-fechas">Gerado: 30/07/2026 19:08<br>Base atualizada: 2026-07-30 19:05:35</div>
+      <div class="h-fechas">Gerado: 30/07/2026 19:15<br>Base atualizada: 2026-07-30 19:14:03</div>
       <button class="btn-fs" id="btn-tv" onclick="iniciarTV()" title="Rodízio automático de telas, sem mouse (Esc para sair)">▶ Apresentação</button>
       <button class="btn-fs" id="btn-fs" onclick="telaCheia()" title="Alternar tela cheia (Esc para sair)">⛶ Tela cheia</button>
     </div>
@@ -201,7 +244,10 @@
 </header>
 <main>
   <div class="card" id="sec-filtros">
-    <h2>Filtros</h2>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <h2>Filtros</h2>
+      <button class="btn" id="btn-filtros" onclick="toggleFiltros()">Mostrar ▾</button>
+    </div>
     <div class="desc">Tudo abaixo — KPIs, gráficos e tabela — recalcula conforme o filtro</div>
     <div class="filtros">
       <div><label>Busca</label><input type="search" id="f-q" placeholder="código, assunto, descrição…"></div>
@@ -344,6 +390,12 @@ function limpar(){
   ['f-q','f-st','f-cli','f-tec','f-mesa','f-org','f-pri','f-sit','f-de','f-ate']
     .forEach(id=>document.getElementById(id).value='');
   render();
+}
+function toggleFiltros(){
+  const sec=document.getElementById('sec-filtros');
+  sec.classList.toggle('aberto');
+  document.getElementById('btn-filtros').textContent =
+    sec.classList.contains('aberto')?'Ocultar ▴':'Mostrar ▾';
 }
 function filtrar(comStatus=true){
   const v=id=>document.getElementById(id).value;
@@ -629,10 +681,10 @@ function hotlist(lsF){
   cont.innerHTML=`<div class="scroll-tabla" style="max-height:460px"><table><thead><tr>
     <th>#</th><th>Assunto</th><th>Cliente</th><th>Status</th><th>Situação</th>
     <th>Técnico</th><th class="num-td">Dias</th></tr></thead><tbody>`+
-    ab.map(({t,cl})=>`<tr onclick="abrir(${t.c})"><td>${t.c}</td><td>${esc(t.as)}</td>
-      <td>${esc(t.cli)}</td><td>${badge(t.st)}</td><td>${badgeSit(cl.sit)}</td>
-      <td>${nomeTec(t)}</td>
-      <td class="num-td ${cl.crit?'dias-alto':'dias-medio'}">${t.d??'—'}</td></tr>`).join('')
+    ab.map(({t,cl})=>`<tr onclick="abrir(${t.c})"><td data-label="#">${t.c}</td><td data-label="Assunto">${esc(t.as)}</td>
+      <td data-label="Cliente">${esc(t.cli)}</td><td data-label="Status">${badge(t.st)}</td><td data-label="Situação">${badgeSit(cl.sit)}</td>
+      <td data-label="Técnico">${nomeTec(t)}</td>
+      <td data-label="Dias" class="num-td ${cl.crit?'dias-alto':'dias-medio'}">${t.d??'—'}</td></tr>`).join('')
     +`</tbody></table></div>`;
 }
 
@@ -668,11 +720,11 @@ function tabela(ls){
   mostra.map(t=>{
     const cl=classifica(t);
     const dcls=t.st!=='Finalizado'?(cl.crit?'dias-alto':(cl.fora?'dias-medio':'')):'';
-    return `<tr onclick="abrir(${t.c})"><td>${t.c}</td><td>${esc(t.as)}</td>
-      <td>${esc(t.cli)}</td><td>${badge(t.st)}</td><td>${badgeSit(cl.sit)}</td>
-      <td>${nomeTec(t)}</td><td>${fmtDH(t.cr).slice(0,10)}</td>
-      <td class="num-td ${dcls}">${t.d??'—'}</td>
-      <td class="num-td">${t.hs?t.hs.toFixed(1):'—'}</td></tr>`;
+    return `<tr onclick="abrir(${t.c})"><td data-label="#">${t.c}</td><td data-label="Assunto">${esc(t.as)}</td>
+      <td data-label="Cliente">${esc(t.cli)}</td><td data-label="Status">${badge(t.st)}</td><td data-label="Situação">${badgeSit(cl.sit)}</td>
+      <td data-label="Técnico">${nomeTec(t)}</td><td data-label="Criado">${fmtDH(t.cr).slice(0,10)}</td>
+      <td data-label="Dias" class="num-td ${dcls}">${t.d??'—'}</td>
+      <td data-label="Horas" class="num-td">${t.hs?t.hs.toFixed(1):'—'}</td></tr>`;
   }).join('')+`</tbody></table></div>`;
   document.getElementById('conteo').textContent =
     (l.length>MAXV?`Mostrando ${MAXV} de ${l.length} tickets (refine o filtro para ver o restante). `:`${l.length} tickets. `)
