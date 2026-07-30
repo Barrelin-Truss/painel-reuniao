@@ -255,7 +255,7 @@
         <small>Todos os chamados do Milvus · clique num ticket para ver a ficha completa</small></h1>
     </div>
     <div class="h-dir">
-      <div class="h-fechas">Gerado: 30/07/2026 20:16<br>Base atualizada: 2026-07-30 20:16:40</div>
+      <div class="h-fechas">Gerado: 30/07/2026 20:20<br>Base atualizada: 2026-07-30 20:19:05</div>
       <button class="btn-fs" id="btn-tv" onclick="iniciarTV()" title="Rodízio automático de telas, sem mouse (Esc para sair)">▶ Apresentação</button>
       <button class="btn-fs" id="btn-fs" onclick="telaCheia()" title="Alternar tela cheia (Esc para sair)">⛶ Tela cheia</button>
     </div>
@@ -914,9 +914,48 @@ function render(){
   tabela(lsT);
 }
 iniciarFiltros();
+
+// restaura filtros salvos antes de um reload automatico
+try{
+  const fs=JSON.parse(sessionStorage.getItem('pr_filtros')||'null');
+  if(fs){ sessionStorage.removeItem('pr_filtros');
+    Object.entries(fs).forEach(([id,v])=>{ const el=document.getElementById(id); if(el) el.value=v; }); }
+}catch(_){}
+
 render();
 // re-renderiza ao girar o celular / mudar o tamanho da tela
 window.matchMedia('(max-width:640px)').addEventListener('change',()=>{ if(!tv.on) render(); });
+
+/* ---------- auto-atualizacao (recarrega quando ha versao nova) ---------- */
+let _versao=null;
+async function checarVersao(){
+  try{
+    const r=await fetch(location.href.split('#')[0],{method:'HEAD',cache:'no-store'});
+    const e=r.headers.get('etag')||r.headers.get('last-modified');
+    if(!e) return;
+    if(_versao===null){ _versao=e; return; }
+    if(e!==_versao){
+      // preserva estado para retomar apos o reload
+      const ids=['f-q','f-st','f-cli','f-tec','f-mesa','f-org','f-pri','f-sit','f-de','f-ate'];
+      const fs={}; ids.forEach(id=>{ const v=document.getElementById(id).value; if(v) fs[id]=v; });
+      sessionStorage.setItem('pr_filtros',JSON.stringify(fs));
+      if(tv.on){ sessionStorage.setItem('pr_tv',String(tv.idx)); }
+      location.reload();
+    }
+  }catch(_){ /* aberto localmente ou sem rede - ignora */ }
+}
+setInterval(checarVersao,60000);
+checarVersao();
+
+// retoma a apresentacao se estava ativa antes do reload
+(function(){
+  const idx=sessionStorage.getItem('pr_tv');
+  if(idx===null) return;
+  sessionStorage.removeItem('pr_tv');
+  iniciarTV();
+  tv.idx=Math.min(+idx||0,(4+tv.pags)-1);
+  mostrarSlide();
+})();
 </script>
 </body>
 </html>
