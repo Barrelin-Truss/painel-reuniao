@@ -39,6 +39,8 @@
 
   /* ---------- modo apresentacao (TV) ---------- */
   body.tv { cursor:none; }
+  body.tv header { cursor:auto; }
+  body.tv .btn-fs { cursor:pointer; }
   body.tv main { max-width:none; padding:26px 34px 60px; }
   body.tv .h-int { max-width:none; }
   body.tv .kpi .num { font-size:2.5rem; }
@@ -255,7 +257,7 @@
         <small>Todos os chamados do Milvus · clique num ticket para ver a ficha completa</small></h1>
     </div>
     <div class="h-dir">
-      <div class="h-fechas">Gerado: 30/07/2026 20:20<br>Base atualizada: 2026-07-30 20:19:05</div>
+      <div class="h-fechas">Gerado: 30/07/2026 20:32<br>Base atualizada: 2026-07-30 20:29:03</div>
       <button class="btn-fs" id="btn-tv" onclick="iniciarTV()" title="Rodízio automático de telas, sem mouse (Esc para sair)">▶ Apresentação</button>
       <button class="btn-fs" id="btn-fs" onclick="telaCheia()" title="Alternar tela cheia (Esc para sair)">⛶ Tela cheia</button>
     </div>
@@ -806,9 +808,11 @@ const TV_LINHAS = 12;       // tickets por pagina da tabela
 let tv = {on:false, idx:0, timer:null, pags:1, lista:[]};
 
 function iniciarTV(){
+  if(tv.on){ pararTV(); return; }   // o botao alterna: liga/desliga
   tv.lista = filtrar().filter(t=>t.st!=='Finalizado').sort((a,b)=>(b.d??0)-(a.d??0));
   tv.pags = Math.max(1, Math.ceil(tv.lista.length/TV_LINHAS));
   tv.on = true; tv.idx = 0;
+  document.getElementById('btn-tv').textContent='■ Sair da apresentação';
   document.body.classList.add('tv');
   if(!document.fullscreenElement && document.documentElement.requestFullscreen)
     document.documentElement.requestFullscreen().catch(()=>{});
@@ -818,6 +822,7 @@ function iniciarTV(){
 function pararTV(){
   if(!tv.on) return;
   tv.on = false; clearInterval(tv.timer);
+  document.getElementById('btn-tv').textContent='▶ Apresentação';
   document.body.classList.remove('tv');
   ['sec-filtros','fila1','fila2','fila3','sec-hot','sec-tabela'].forEach(id=>document.getElementById(id).style.display='');
   document.getElementById('tv-info').style.display='none';
@@ -862,6 +867,7 @@ function tvTabela(p){
 }
 document.addEventListener('keydown',e=>{
   if(!tv.on) return;
+  if(e.key==='Escape'){ pararTV(); return; }  // sai mesmo sem tela cheia ativa
   const n=4+tv.pags;
   if(e.key==='ArrowRight'){ tv.idx=(tv.idx+1)%n; mostrarSlide(); }
   if(e.key==='ArrowLeft'){ tv.idx=(tv.idx-1+n)%n; mostrarSlide(); }
