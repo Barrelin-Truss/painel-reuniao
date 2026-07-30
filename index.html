@@ -948,14 +948,15 @@ setInterval(checarVersao,60000);
 checarVersao();
 
 // retoma a apresentacao se estava ativa antes do reload
-(function(){
+try{
   const idx=sessionStorage.getItem('pr_tv');
-  if(idx===null) return;
-  sessionStorage.removeItem('pr_tv');
-  iniciarTV();
-  tv.idx=Math.min(+idx||0,(4+tv.pags)-1);
-  mostrarSlide();
-})();
+  if(idx!==null){
+    sessionStorage.removeItem('pr_tv');
+    iniciarTV();
+    tv.idx=Math.min(+idx||0,(4+tv.pags)-1);
+    mostrarSlide();
+  }
+}catch(_){}
 </script>
 </body>
 </html>
