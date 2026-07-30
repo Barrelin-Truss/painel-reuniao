@@ -200,11 +200,16 @@
     .h-fechas { font-size:.62rem; }
     .btn-fs { padding:5px 10px; font-size:.68rem; }
     .kpis { grid-template-columns:repeat(2,1fr); gap:8px; }
+    #kpis-fluxo { grid-template-columns:1fr; }   /* comparativos em largura total */
     .kpi { padding:10px 12px 9px; }
     .kpi .num { font-size:1.4rem; }
-    .cmp { gap:8px; }
-    .cmp .num { font-size:1.1rem; }
-    .cmp .col.atual .num { font-size:1.4rem; }
+    .cmp { flex-wrap:wrap; gap:4px 12px; }
+    .cmp .col { flex:1 1 42%; min-width:0; }
+    .cmp .sub { font-size:.58rem; }
+    .cmp .num { font-size:1.25rem; }
+    .cmp .col.atual .num { font-size:1.55rem; }
+    .delta { order:3; flex:1 1 100%; text-align:center; justify-self:center;
+             padding:2px 8px; font-size:.7rem; }
     .faixa { font-size:.7rem; padding:7px 10px; gap:4px 10px; }
     .card { padding:14px 14px; }
     /* filtros recolhidos por padrao */
@@ -236,7 +241,7 @@
     <h1>Painel de Operações — TRUSS<span class="tag-int">USO INTERNO</span>
       <small>Todos os chamados do Milvus · clique num ticket para ver a ficha completa</small></h1>
     <div class="h-dir">
-      <div class="h-fechas">Gerado: 30/07/2026 19:17<br>Base atualizada: 2026-07-30 19:17:12</div>
+      <div class="h-fechas">Gerado: 30/07/2026 19:19<br>Base atualizada: 2026-07-30 19:19:04</div>
       <button class="btn-fs" id="btn-tv" onclick="iniciarTV()" title="Rodízio automático de telas, sem mouse (Esc para sair)">▶ Apresentação</button>
       <button class="btn-fs" id="btn-fs" onclick="telaCheia()" title="Alternar tela cheia (Esc para sair)">⛶ Tela cheia</button>
     </div>
