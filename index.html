@@ -89,13 +89,27 @@
   .punto { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px; vertical-align:-1px; }
   .nota { font-size:.7rem; color:var(--gris); margin-top:6px; font-style:italic; }
 
-  .hb-fila { display:grid; grid-template-columns:130px 1fr 74px; align-items:center;
-             gap:8px; font-size:.78rem; margin-bottom:7px; }
+  .hb-fila { display:grid; grid-template-columns:140px 1fr 96px; align-items:center;
+             gap:10px; font-size:.78rem; margin-bottom:8px; }
   .hb-fila span:first-child { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .hb-pista { display:block; background:#edf1f8; border-radius:999px; height:11px; overflow:hidden; }
   .hb-barra { display:block; height:100%; border-radius:999px; min-width:6px; }
-  .hb-val { color:var(--gris); font-size:.74rem; text-align:right; }
+  .hb-val { color:var(--gris); font-size:.74rem; text-align:right; white-space:nowrap; }
   .hb-val b { color:var(--azul-med); }
+
+  /* rankings e carga */
+  .rk-fila { display:grid; grid-template-columns:26px 132px 1fr 64px; align-items:center;
+             gap:8px; font-size:.78rem; margin-bottom:8px; }
+  .rk-fila .nome { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:600; }
+  .rk-pos { width:22px; height:22px; border-radius:50%; background:#edf1f8; color:var(--gris);
+            font-size:.7rem; font-weight:700; display:flex; align-items:center; justify-content:center; }
+  .rk-pos.top1 { background:#f5c518; color:#5b4300; }
+  .rk-pos.top2 { background:#d7dde6; color:#4a5568; }
+  .rk-pos.top3 { background:#e8c8a0; color:#6b4a1b; }
+  .tec-pista { display:flex; background:#edf1f8; border-radius:999px; height:12px; overflow:hidden; }
+  .tec-ok   { display:block; height:100%; background:linear-gradient(90deg,#1e56b0,#2f6fd6); }
+  .tec-fora { display:block; height:100%; background:#e0a800; }
+  .sem-tec { color:var(--rojo); font-weight:700; font-size:.7rem; letter-spacing:.3px; }
 
   /* tabela */
   table { width:100%; border-collapse:collapse; font-size:.8rem; }
@@ -151,7 +165,7 @@
     <h1>Painel de Operações — TRUSS<span class="tag-int">USO INTERNO</span>
       <small>Todos os chamados do Milvus · clique num ticket para ver a ficha completa</small></h1>
     <div class="h-dir">
-      <div class="h-fechas">Gerado: 30/07/2026 18:34<br>Base atualizada: 2026-07-30 18:34:02</div>
+      <div class="h-fechas">Gerado: 30/07/2026 18:43<br>Base atualizada: 2026-07-30 18:39:02</div>
       <button class="btn-fs" id="btn-tv" onclick="iniciarTV()" title="Rodízio automático de telas, sem mouse (Esc para sair)">▶ Apresentação</button>
       <button class="btn-fs" id="btn-fs" onclick="telaCheia()" title="Alternar tela cheia (Esc para sair)">⛶ Tela cheia</button>
     </div>
@@ -202,8 +216,13 @@
   </div>
 
   <div class="grid3" id="fila2">
+    <div class="card"><h2>Ranking semanal de atendimento</h2><div class="desc">Tickets resolvidos nos últimos 7 dias, por técnico</div><div id="g-rank"></div></div>
+    <div class="card"><h2>Carga por técnico</h2><div class="desc">Abertos atribuídos — azul no prazo, amarelo fora do prazo</div><div id="g-tec"></div></div>
+    <div class="card"><h2>Menor uso da plataforma</h2><div class="desc">Dias sem registrar atividade · % de resoluções em 30d sem horas apontadas</div><div id="g-uso"></div></div>
+  </div>
+
+  <div class="grid2" id="fila3">
     <div class="card"><h2>Tickets abertos por cliente</h2><div class="desc">Situação de hoje (top 8)</div><div id="g-cli"></div></div>
-    <div class="card"><h2>Carga por técnico</h2><div class="desc">Barra = abertos atribuídos · "res" = resolvidos nos últimos 30 dias</div><div id="g-tec"></div></div>
     <div class="card"><h2>Por origem</h2><div class="desc">Canal de entrada dos tickets (histórico do filtro)</div><div id="g-org"></div></div>
   </div>
 
@@ -323,12 +342,15 @@ function diasAtras(n){
   d.setDate(d.getDate()-n);
   return d.toISOString().slice(0,10);
 }
-function kpis(lsF){
-  const abertos=lsF.filter(t=>t.st!=='Finalizado');
-  const fins=lsF.filter(t=>t.st==='Finalizado');
+function kpis(lsT,lsF){
+  // Estoque: respeita TODOS os filtros (inclusive status/situacao)
+  const abertos=lsT.filter(t=>t.st!=='Finalizado');
   const cls=abertos.map(classifica);
   const fora=cls.filter(c=>c.fora).length, crit=cls.filter(c=>c.crit).length;
+  const semTec=abertos.filter(t=>!t.tec).length;
   const pctFora=abertos.length?Math.round(fora/abertos.length*100):0;
+  // Fluxo: respeita os filtros exceto status (senao resolvidos zeram)
+  const fins=lsF.filter(t=>t.st==='Finalizado');
   const d7=diasAtras(7), d30=diasAtras(30), d14=diasAtras(14);
   const cri7 =lsF.filter(t=>(t.cr||'').slice(0,10)>=d7).length;
   const cri14=lsF.filter(t=>{const c=(t.cr||'').slice(0,10);return c>=d14&&c<d7;}).length;
@@ -339,7 +361,6 @@ function kpis(lsF){
   const tmrArr=f30.map(t=>t.d).filter(d=>d!=null);
   const tmr=tmrArr.length?(tmrArr.reduce((a,b)=>a+b,0)/tmrArr.length).toFixed(1):null;
   const dentro2d=tmrArr.length?Math.round(tmrArr.filter(d=>d<=2).length/tmrArr.length*100):null;
-  const horas30=f30.reduce((a,t)=>a+(t.hs||0),0);
   const vs=(a,b)=>{ const dif=a-b;
     return dif===0?'= semana anterior':`<b class="${dif>0?'mal':'bem'}">${dif>0?'+':''}${dif}</b> vs sem. anterior`; };
   const items=[
@@ -347,6 +368,8 @@ function kpis(lsF){
       `${crit} críticos`],
     [`${fora}<small> · ${pctFora}%</small>`,'Fora do prazo','var(--ambar)',
       '% dos abertos'],
+    [semTec,'Sem técnico','var(--rojo)',
+      semTec?'<b class="mal">exigem atribuição</b>':'todos atribuídos'],
     [cri7,'Criados últimos 7d','var(--azul2)', vs(cri7,cri14)],
     [res7,'Resolvidos últimos 7d','var(--verde)',
       res7-res14===0?'= semana anterior':`<b class="${res7-res14<0?'mal':'bem'}">${res7-res14>0?'+':''}${res7-res14}</b> vs sem. anterior`],
@@ -354,8 +377,6 @@ function kpis(lsF){
       saldo>0?'tickets abertos crescendo':(saldo<0?'tickets abertos caindo':'estável')],
     [tmr!=null?`${tmr}<small> d</small>`:'—','TMR (resolvidos 30d)','var(--azul2)',
       dentro2d!=null?`${dentro2d}% em até 2 dias`:''],
-    [`${horas30.toFixed(0)}<small> h</small>`,'Horas apontadas (30d)','var(--roxo)',
-      `${f30.length} resolvidos em 30d`],
   ];
   document.getElementById('kpis').innerHTML =
     items.map(([n,l,c,e])=>`<div class="kpi" style="--acc:${c}"><div class="num">${n}</div><div class="lbl">${l}</div><div class="extra">${e||''}</div></div>`).join('');
@@ -433,35 +454,99 @@ function aging(ls){
     +`<div class="nota">${ab.length} abertos no filtro atual</div>`;
 }
 
-function tecnicos(lsF){
-  const d30=diasAtras(30), m={};
+/* Ranking semanal: quem mais resolveu nos ultimos 7 dias */
+function rankingSemanal(lsF){
+  const d7=diasAtras(7), m={};
   lsF.forEach(t=>{
-    const k=t.tec||'— Sem técnico —';
-    m[k]=m[k]||{ab:0,fin30:0,hs30:0};
-    if(t.st!=='Finalizado') m[k].ab++;
-    else if((t.rs||'').slice(0,10)>=d30){ m[k].fin30++; m[k].hs30+=t.hs||0; }
+    if(t.st==='Finalizado' && (t.rs||'').slice(0,10)>=d7){
+      const k=t.tec||'— Sem técnico —';
+      m[k]=(m[k]||0)+1;
+    }
   });
-  const pares=Object.entries(m).map(([k,v])=>({k,v:v.ab,fin:v.fin30,hs:v.hs30}))
-    .filter(p=>p.v||p.fin)
-    .sort((a,b)=>b.v-a.v||b.fin-a.fin).slice(0,8);
-  hbarras(document.getElementById('g-tec'), pares, 'linear-gradient(90deg,#1e56b0,#2f6fd6)',
-    p=>`<b>${p.v}</b> ab · ${p.fin} res`);
+  const pares=Object.entries(m).map(([k,v])=>({k,v})).sort((a,b)=>b.v-a.v).slice(0,8);
+  const cont=document.getElementById('g-rank');
+  if(!pares.length){ cont.innerHTML='<div class="vacio">Nenhum ticket resolvido nos últimos 7 dias.</div>'; return; }
+  const max=Math.max(...pares.map(p=>p.v),1);
+  cont.innerHTML=pares.map((p,i)=>`
+    <div class="rk-fila">
+      <span class="rk-pos ${i===0?'top1':i===1?'top2':i===2?'top3':''}">${i+1}</span>
+      <span class="nome" title="${esc(p.k)}">${esc(p.k)}</span>
+      <span class="hb-pista"><span class="hb-barra" style="width:${Math.round(p.v/max*100)}%;background:linear-gradient(90deg,#2e7d32,#43a047)"></span></span>
+      <span class="hb-val"><b>${p.v}</b> res</span>
+    </div>`).join('');
 }
 
+/* Carga: abertos por tecnico, barra empilhada no prazo x fora do prazo */
+function cargaTecnicos(lsF){
+  const m={};
+  lsF.filter(t=>t.st!=='Finalizado').forEach(t=>{
+    const k=t.tec||'— Sem técnico —';
+    m[k]=m[k]||{ok:0,fora:0};
+    if(classifica(t).fora) m[k].fora++; else m[k].ok++;
+  });
+  const pares=Object.entries(m).map(([k,v])=>({k,tot:v.ok+v.fora,ok:v.ok,fora:v.fora}))
+    .sort((a,b)=>b.tot-a.tot).slice(0,8);
+  const cont=document.getElementById('g-tec');
+  if(!pares.length){ cont.innerHTML='<div class="vacio">Nenhum ticket aberto no filtro.</div>'; return; }
+  const max=Math.max(...pares.map(p=>p.tot),1);
+  cont.innerHTML=pares.map(p=>`
+    <div class="hb-fila">
+      <span title="${esc(p.k)}" ${p.k==='— Sem técnico —'?'class="sem-tec"':''}>${esc(p.k)}</span>
+      <span class="tec-pista">
+        <span class="tec-ok" style="width:${Math.round(p.ok/max*100)}%"></span>
+        <span class="tec-fora" style="width:${Math.round(p.fora/max*100)}%"></span>
+      </span>
+      <span class="hb-val"><b>${p.tot}</b> ab · ${p.fora} fora</span>
+    </div>`).join('');
+}
+
+/* Menor uso da plataforma: dias sem atividade + resolucoes sem horas */
+function menorUso(lsF){
+  const d30=diasAtras(30), hoje=new Date(D.hoje+'T00:00:00'), m={};
+  lsF.forEach(t=>{
+    if(!t.tec) return;
+    const k=t.tec;
+    m[k]=m[k]||{ult:'', f30:0, f30sem:0};
+    const md=(t.md||t.cr||'').slice(0,10);
+    if(md>m[k].ult) m[k].ult=md;
+    if(t.st==='Finalizado' && (t.rs||'').slice(0,10)>=d30){
+      m[k].f30++;
+      if(!t.hs) m[k].f30sem++;
+    }
+  });
+  const pares=Object.entries(m).map(([k,v])=>{
+    const dias=v.ult?Math.max(0,Math.round((hoje-new Date(v.ult+'T00:00:00'))/86400000)):99;
+    const pct=v.f30?Math.round(v.f30sem/v.f30*100):null;
+    return {k,dias,pct,f30:v.f30};
+  }).sort((a,b)=>b.dias-a.dias||(b.pct??-1)-(a.pct??-1)).slice(0,8);
+  const cont=document.getElementById('g-uso');
+  if(!pares.length){ cont.innerHTML='<div class="vacio">Sem técnicos no filtro.</div>'; return; }
+  cont.innerHTML=pares.map(p=>`
+    <div class="hb-fila">
+      <span title="${esc(p.k)}">${esc(p.k)}</span>
+      <span class="hb-pista"><span class="hb-barra" style="width:${Math.round(Math.min(p.dias,30)/30*100)}%;background:linear-gradient(90deg,#e0a800,#c62828)"></span></span>
+      <span class="hb-val"><b>${p.dias}d</b>${p.pct!=null?` · ${p.pct}% s/h`:''}</span>
+    </div>`).join('')
+    +'<div class="nota">Barra = dias desde a última atividade registrada (limitada a 30) · "s/h" = resoluções em 30d sem horas apontadas.</div>';
+}
+
+function nomeTec(t){
+  return t.tec?esc(t.tec):'<span class="sem-tec">SEM TÉCNICO</span>';
+}
 function hotlist(lsF){
   const ab=lsF.filter(t=>t.st!=='Finalizado')
-    .map(t=>({t,cl:classifica(t)}))
-    .filter(x=>x.cl.crit||x.cl.fora)
-    .sort((a,b)=>(b.cl.crit-a.cl.crit)||((b.t.d??0)-(a.t.d??0)))
-    .slice(0,10);
+    .map(t=>({t,cl:classifica(t),peso:(!t.tec?4:0)+(0)}))
+    .filter(x=>x.cl.crit||x.cl.fora||!x.t.tec)
+    .sort((a,b)=>((!b.t.tec)-(!a.t.tec))||(b.cl.crit-a.cl.crit)||((b.t.d??0)-(a.t.d??0)))
+    .slice(0,12);
   const cont=document.getElementById('hotlist');
-  if(!ab.length){ cont.innerHTML='<div class="vacio">Nenhum ticket crítico ou fora do prazo. 👏</div>'; return; }
-  cont.innerHTML=`<div class="scroll-tabla" style="max-height:420px"><table><thead><tr>
+  if(!ab.length){ cont.innerHTML='<div class="vacio">Nenhum ticket crítico, fora do prazo ou sem técnico. 👏</div>'; return; }
+  cont.innerHTML=`<div class="scroll-tabla" style="max-height:460px"><table><thead><tr>
     <th>#</th><th>Assunto</th><th>Cliente</th><th>Status</th><th>Situação</th>
     <th>Técnico</th><th class="num-td">Dias</th></tr></thead><tbody>`+
     ab.map(({t,cl})=>`<tr onclick="abrir(${t.c})"><td>${t.c}</td><td>${esc(t.as)}</td>
       <td>${esc(t.cli)}</td><td>${badge(t.st)}</td><td>${badgeSit(cl.sit)}</td>
-      <td>${esc(t.tec||'—')}</td>
+      <td>${nomeTec(t)}</td>
       <td class="num-td ${cl.crit?'dias-alto':'dias-medio'}">${t.d??'—'}</td></tr>`).join('')
     +`</tbody></table></div>`;
 }
@@ -500,7 +585,7 @@ function tabela(ls){
     const dcls=t.st!=='Finalizado'?(cl.crit?'dias-alto':(cl.fora?'dias-medio':'')):'';
     return `<tr onclick="abrir(${t.c})"><td>${t.c}</td><td>${esc(t.as)}</td>
       <td>${esc(t.cli)}</td><td>${badge(t.st)}</td><td>${badgeSit(cl.sit)}</td>
-      <td>${esc(t.tec||'—')}</td><td>${fmtDH(t.cr).slice(0,10)}</td>
+      <td>${nomeTec(t)}</td><td>${fmtDH(t.cr).slice(0,10)}</td>
       <td class="num-td ${dcls}">${t.d??'—'}</td>
       <td class="num-td">${t.hs?t.hs.toFixed(1):'—'}</td></tr>`;
   }).join('')+`</tbody></table></div>`;
@@ -555,13 +640,13 @@ function iniciarTV(){
   if(!document.fullscreenElement && document.documentElement.requestFullscreen)
     document.documentElement.requestFullscreen().catch(()=>{});
   mostrarSlide();
-  tv.timer = setInterval(()=>{ tv.idx=(tv.idx+1)%(3+tv.pags); mostrarSlide(); }, TV_SEG*1000);
+  tv.timer = setInterval(()=>{ tv.idx=(tv.idx+1)%(4+tv.pags); mostrarSlide(); }, TV_SEG*1000);
 }
 function pararTV(){
   if(!tv.on) return;
   tv.on = false; clearInterval(tv.timer);
   document.body.classList.remove('tv');
-  ['sec-filtros','fila1','fila2','sec-hot','sec-tabela'].forEach(id=>document.getElementById(id).style.display='');
+  ['sec-filtros','fila1','fila2','fila3','sec-hot','sec-tabela'].forEach(id=>document.getElementById(id).style.display='');
   document.getElementById('tv-info').style.display='none';
   document.getElementById('tv-prog').style.animation='none';
   if(document.fullscreenElement) document.exitFullscreen().catch(()=>{});
@@ -572,14 +657,15 @@ function mostrarSlide(){
   document.getElementById('sec-filtros').style.display='none';
   document.getElementById('fila1').style.display = i===0?'':'none';
   document.getElementById('fila2').style.display = i===1?'':'none';
-  document.getElementById('sec-hot').style.display = i===2?'':'none';
-  document.getElementById('sec-tabela').style.display = i>=3?'':'none';
-  if(i>=3) tvTabela(i-3);
+  document.getElementById('fila3').style.display = i===2?'':'none';
+  document.getElementById('sec-hot').style.display = i===3?'':'none';
+  document.getElementById('sec-tabela').style.display = i>=4?'':'none';
+  if(i>=4) tvTabela(i-4);
   window.scrollTo(0,0);
   const info=document.getElementById('tv-info');
   info.style.display='block';
-  const nomes=['Visão geral','Distribuições','Atenção imediata'];
-  info.textContent=`${nomes[i]||`Abertos ${i-2}/${tv.pags}`} · tela ${i+1}/${3+tv.pags}`;
+  const nomes=['Visão geral','Equipe','Clientes e origem','Atenção imediata'];
+  info.textContent=`${nomes[i]||`Abertos ${i-3}/${tv.pags}`} · tela ${i+1}/${4+tv.pags}`;
   const pb=document.getElementById('tv-prog');
   pb.style.animation='none'; void pb.offsetWidth;
   pb.style.animation=`tvprog ${TV_SEG}s linear`;
@@ -603,7 +689,7 @@ function tvTabela(p){
 }
 document.addEventListener('keydown',e=>{
   if(!tv.on) return;
-  const n=3+tv.pags;
+  const n=4+tv.pags;
   if(e.key==='ArrowRight'){ tv.idx=(tv.idx+1)%n; mostrarSlide(); }
   if(e.key==='ArrowLeft'){ tv.idx=(tv.idx-1+n)%n; mostrarSlide(); }
 });
@@ -626,13 +712,13 @@ function exportCsv(){
 
 /* ---------- render ---------- */
 function render(){
-  const lsT=filtrar();          // tabela: respeita todos os filtros
+  const lsT=filtrar();          // tabela e KPIs de estoque: todos os filtros
   const lsF=filtrar(false);     // fluxo: ignora o filtro de status
-  kpis(lsF); evolucao(lsF); aging(lsF); hotlist(lsF);
+  kpis(lsT,lsF); evolucao(lsF); aging(lsF); hotlist(lsF);
+  rankingSemanal(lsF); cargaTecnicos(lsF); menorUso(lsF);
   hbarras(document.getElementById('g-cli'),
     topN(lsF.filter(t=>t.st!=='Finalizado'),'cli',8),
     'linear-gradient(90deg,#1e56b0,#2f6fd6)');
-  tecnicos(lsF);
   hbarras(document.getElementById('g-org'), topN(lsF,'org',8), 'linear-gradient(90deg,#5e35a8,#8e5bd9)');
   tabela(lsT);
 }
