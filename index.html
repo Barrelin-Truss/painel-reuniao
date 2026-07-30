@@ -80,6 +80,23 @@
   .kpi-titulo { font-size:.72rem; font-weight:700; color:var(--gris);
                 text-transform:uppercase; letter-spacing:.6px; margin:2px 2px 8px; }
   .kpi-titulo small { font-weight:400; text-transform:none; letter-spacing:0; }
+
+  /* KPI comparativo: semana fechada x semana atual lado a lado */
+  .cmp { display:flex; align-items:center; gap:12px; margin:4px 0 2px; }
+  .cmp .col { flex:1; }
+  .cmp .sub { font-size:.64rem; font-weight:700; color:var(--gris);
+              text-transform:uppercase; letter-spacing:.4px; }
+  .cmp .num { font-size:1.45rem; font-weight:700; color:#8a94a6; letter-spacing:-.5px; }
+  .cmp .num small { font-size:.85rem; font-weight:600; }
+  .cmp .col.atual .num { font-size:1.85rem; color:var(--azul-med); }
+  .cmp .col.atual .sub { color:var(--azul2-osc); }
+  .delta { align-self:center; padding:3px 10px; border-radius:999px;
+           font-size:.74rem; font-weight:700; white-space:nowrap; }
+  .delta.bem { background:var(--verde-bg); color:var(--verde); }
+  .delta.mal { background:var(--rojo-bg); color:var(--rojo); }
+  .delta.neu { background:#edf1f8; color:var(--gris); }
+  body.tv .cmp .num { font-size:1.9rem; }
+  body.tv .cmp .col.atual .num { font-size:2.5rem; }
   .kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(148px,1fr));
           gap:12px; margin-bottom:20px; }
   .kpi { background:#fff; border:1px solid var(--borde); border-radius:12px;
@@ -176,7 +193,7 @@
     <h1>Painel de Operações — TRUSS<span class="tag-int">USO INTERNO</span>
       <small>Todos os chamados do Milvus · clique num ticket para ver a ficha completa</small></h1>
     <div class="h-dir">
-      <div class="h-fechas">Gerado: 30/07/2026 19:05<br>Base atualizada: 2026-07-30 19:05:35</div>
+      <div class="h-fechas">Gerado: 30/07/2026 19:08<br>Base atualizada: 2026-07-30 19:05:35</div>
       <button class="btn-fs" id="btn-tv" onclick="iniciarTV()" title="Rodízio automático de telas, sem mouse (Esc para sair)">▶ Apresentação</button>
       <button class="btn-fs" id="btn-fs" onclick="telaCheia()" title="Alternar tela cheia (Esc para sair)">⛶ Tela cheia</button>
     </div>
@@ -412,17 +429,41 @@ function kpis(lsT,lsF){
       maisAntigo!=null?`mais antigo: ${maisAntigo}d`:''],
   ].map(kpi).join('');
 
-  document.getElementById('kpis-fluxo').innerHTML=[
-    [taxaFech!=null?`${taxaFech}<small>%</small>`:'—',`Taxa de resolução (${per})`,
-      taxaFech>=100?'var(--verde)':'var(--ambar)',
-      `${resFech} res ÷ ${criFech} cri · semana atual: <b>${taxaAtu!=null?taxaAtu+'%':'—'}</b>`],
-    [resFech,`Vazão (${per})`,'var(--verde)',
-      `semana atual: <b>${resAtu}</b> até agora`+
-      (ritmo!=null?` · ritmo <b class="${ritmo<0?'mal':'bem'}">${ritmo>0?'+':''}${ritmo}%</b> vs mesma altura`:'')],
-    [tmrFech!=null?`${tmrFech}<small> d</small>`:'—',`TMR (${per})`,'var(--azul2)',
-      `semana atual: <b>${tmrAtu!=null?tmrAtu+' d':'—'}</b>`+
-      (d2Fech!=null?` · ${d2Fech}% em até 2d`:'')],
-  ].map(kpi).join('');
+  // Cartoes comparativos: semana fechada x semana atual em pe de igualdade
+  const deltaChip=(dif,unid,melhorBaixo)=>{
+    if(dif==null) return '<span class="delta neu">—</span>';
+    const bom=melhorBaixo?dif<=0:dif>=0;
+    return `<span class="delta ${dif===0?'neu':(bom?'bem':'mal')}">${dif>0?'+':''}${dif}${unid}</span>`;
+  };
+  const cmp=(lbl,acc,vFech,vAtu,chip,extra)=>`
+    <div class="kpi" style="--acc:${acc}">
+      <div class="lbl">${lbl}</div>
+      <div class="cmp">
+        <div class="col"><div class="sub">fechada ${per}</div><div class="num">${vFech}</div></div>
+        ${chip}
+        <div class="col atual"><div class="sub">semana atual</div><div class="num">${vAtu}</div></div>
+      </div>
+      <div class="extra">${extra}</div>
+    </div>`;
+
+  const difTaxa=(taxaFech!=null&&taxaAtu!=null)?taxaAtu-taxaFech:null;
+  const difTmr=(tmrFech!=null&&tmrAtu!=null)?+(tmrAtu-tmrFech).toFixed(1):null;
+
+  document.getElementById('kpis-fluxo').innerHTML=
+    cmp('Taxa de resolução', (taxaAtu??0)>=100?'var(--verde)':'var(--ambar)',
+      taxaFech!=null?`${taxaFech}<small>%</small>`:'—',
+      taxaAtu!=null?`${taxaAtu}<small>%</small>`:'—',
+      deltaChip(difTaxa,'pp',false),
+      `fechada: ${resFech} res ÷ ${criFech} cri · atual: ${resAtu} res ÷ ${criAtu} cri · acima de 100% a fila encolhe`)+
+    cmp('Vazão de resolução','var(--verde)',
+      String(resFech), String(resAtu),
+      deltaChip(ritmo,'%',false),
+      `ritmo comparado à mesma altura da semana fechada (${resFechParc} até ${fmtDH(iso(mesmaAltura)).slice(0,5)})`)+
+    cmp('TMR — tempo médio de resolução','var(--azul2)',
+      tmrFech!=null?`${tmrFech}<small> d</small>`:'—',
+      tmrAtu!=null?`${tmrAtu}<small> d</small>`:'—',
+      deltaChip(difTmr,'d',true),
+      d2Fech!=null?`na semana fechada, ${d2Fech}% resolvidos em até 2 dias · TMR alto pode indicar limpeza de tickets antigos`:'');
 }
 
 /* ---------- graficos ---------- */
