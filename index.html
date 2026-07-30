@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel de Cobranca - Reuniao de Operacoes - TRUSS</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: Segoe UI, Arial, sans-serif; color:#1f2937; background:#f3f4f6; }
+  .wrap { max-width:1100px; margin:0 auto; padding:24px; }
+  header h1 { margin:0 0 4px; font-size:24px; color:#1f3864; }
+  header p { margin:0; color:#6b7280; font-size:13px; }
+  .kpis { display:grid; grid-template-columns:repeat(6,1fr); gap:12px; margin:20px 0; }
+  .kpi { background:#fff; border-radius:10px; padding:14px; text-align:center; border-top:4px solid #9ca3af; }
+  .kpi-num { font-size:30px; font-weight:700; line-height:1; }
+  .kpi-rot { font-size:12px; color:#6b7280; margin-top:6px; }
+  .kpi-azul { border-top-color:#2a78d6; } .kpi-azul .kpi-num { color:#2a78d6; }
+  .kpi-vermelho { border-top-color:#d03b3b; } .kpi-vermelho .kpi-num { color:#d03b3b; }
+  .kpi-ambar { border-top-color:#eda100; } .kpi-ambar .kpi-num { color:#b8860b; }
+  .kpi-verde { border-top-color:#2e7d32; } .kpi-verde .kpi-num { color:#2e7d32; }
+  section { background:#fff; border-radius:10px; padding:18px 20px; margin:16px 0; }
+  section h2 { margin:0 0 4px; font-size:16px; color:#1f3864; }
+  section .sub { margin:0 0 12px; font-size:12px; color:#6b7280; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th { text-align:left; background:#1f3864; color:#fff; padding:7px 9px; font-weight:600; }
+  td { padding:6px 9px; border-bottom:1px solid #e5e7eb; }
+  tr:nth-child(even) td { background:#f9fafb; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:10px; font-weight:700; font-size:12px; color:#fff; }
+  .b-vermelho { background:#d03b3b; } .b-verde { background:#2e7d32; }
+  .barra-linha { display:flex; align-items:center; gap:10px; margin:5px 0; font-size:13px; }
+  .barra-rot { width:230px; text-align:right; color:#374151; }
+  .barra-trilho { flex:1; background:#e5e7eb; border-radius:6px; height:16px; overflow:hidden; }
+  .barra-fill { display:block; height:100%; border-radius:6px; }
+  .barra-val { width:34px; font-weight:700; color:#1f3864; }
+  .vazio { color:#2e7d32; font-size:13px; margin:4px 0; }
+  .destaque { border-left:5px solid #d03b3b; }
+  footer { text-align:center; color:#9ca3af; font-size:12px; margin:20px 0; }
+  @media print { body { background:#fff; } section, .kpi { break-inside:avoid; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Painel de Cobranca - Reuniao de Operacoes</h1>
+    <p>TRUSS | Dados do Milvus atualizados em 2026-07-28 09:33:18 &nbsp;&middot;&nbsp; ultima coleta: 2026-07-18 a 2026-07-28 (por atualizacao)</p>
+  </header>
+
+  <div class="kpis"><div class='kpi kpi-azul'><div class='kpi-num'>151</div><div class='kpi-rot'>Em aberto</div></div><div class='kpi kpi-vermelho'><div class='kpi-num'>71</div><div class='kpi-rot'>Criticos</div></div><div class='kpi kpi-vermelho'><div class='kpi-num'>70</div><div class='kpi-rot'>Sem tecnico</div></div><div class='kpi kpi-vermelho'><div class='kpi-num'>9</div><div class='kpi-rot'>Atendendo &gt; 2d</div></div><div class='kpi kpi-ambar'><div class='kpi-num'>34</div><div class='kpi-rot'>Pausado &gt; 21d</div></div><div class='kpi kpi-verde'><div class='kpi-num'>2742</div><div class='kpi-rot'>Finalizados</div></div></div>
+
+  <section class="destaque">
+    <h2>1. Em atendimento acima do prazo (2 dias)</h2>
+    <p class="sub">"Atendendo" deveria durar no maximo 2 dias. Estes passaram e precisam de retorno hoje.</p>
+    <table><thead><tr><th>Chamado</th><th>Parado</th><th>Cliente</th><th>Assunto</th><th>Tecnico</th></tr></thead><tbody><tr><td><b>#2529</b></td><td><span class='badge b-vermelho'>172d</span></td><td>LHG</td><td>PENELOPE - Problema elétrico</td><td>Celso  Luis</td></tr><tr><td><b>#2911</b></td><td><span class='badge b-vermelho'>152d</span></td><td>LHG</td><td>TITAN - Terminais offline</td><td>Luiz Silva Lopes Filho</td></tr><tr><td><b>#3439</b></td><td><span class='badge b-vermelho'>125d</span></td><td>LHG</td><td>CAV VI - Câmeras quebradas e queimadas</td><td>Celso  Luis</td></tr><tr><td><b>#5352</b></td><td><span class='badge b-vermelho'>70d</span></td><td>LHG</td><td>Jan Connor [Terminal Galileosky sem alimentação geral]</td><td>Luiz Silva Lopes Filho</td></tr><tr><td><b>#6428</b></td><td><span class='badge b-vermelho'>46d</span></td><td>LHG</td><td>Penelope - Somente Galileosky está comunicando</td><td>Luiz Silva Lopes Filho</td></tr><tr><td><b>#6460</b></td><td><span class='badge b-vermelho'>40d</span></td><td>CVC</td><td>CP - 002 - verificação do sistema de alimentação elétrica, i</td><td>Luiz Silva Lopes Filho</td></tr><tr><td><b>#6454</b></td><td><span class='badge b-vermelho'>40d</span></td><td>LHG</td><td>Gamarra - Reporte de falla de internet</td><td>Jean Carvalho Moraes Carvalho</td></tr><tr><td><b>#6648</b></td><td><span class='badge b-vermelho'>12d</span></td><td>TRUSS INTELLIGENCE</td><td>Camera - Dahua</td><td>Jean Carvalho Moraes Carvalho</td></tr><tr><td><b>#6880</b></td><td><span class='badge b-vermelho'>4d</span></td><td>TRUSS INTELLIGENCE</td><td>EMC 01 - Instalação: Dash Cam Metax</td><td>José Cordeiro Cordeiro</td></tr></tbody></table>
+  </section>
+
+  <section class="destaque">
+    <h2>2. Sem tecnico atribuido</h2>
+    <p class="sub">Nao ha responsavel para cobrar. Definir dono e o primeiro passo. Mostrando os 15 mais antigos.</p>
+    <table><thead><tr><th>Chamado</th><th>Aberto ha</th><th>Cliente</th><th>Assunto</th><th>Status</th></tr></thead><tbody><tr><td><b>#3975</b></td><td>97d</td><td>LHG</td><td>Instalacion de NVD E Inversor, terminal Galileosky</td><td>A fazer</td></tr><tr><td><b>#3980</b></td><td>96d</td><td>LHG</td><td>Instalação de rele de ups</td><td>A fazer</td></tr><tr><td><b>#5346</b></td><td>76d</td><td>LHG</td><td>Problema de Acceso Plataforma Monitoreo Camaras</td><td>A fazer</td></tr><tr><td><b>#5349</b></td><td>70d</td><td>LHG</td><td>Mantenimiento correctivo</td><td>A fazer</td></tr><tr><td><b>#6163</b></td><td>63d</td><td>LHG</td><td>Mantenimiento correctivo</td><td>A fazer</td></tr><tr><td><b>#6149</b></td><td>63d</td><td>LHG</td><td>GEOLOCALIZACIÓN DESACTUALIZADA HACE 5 HORAS</td><td>A fazer</td></tr><tr><td><b>#6142</b></td><td>63d</td><td>LHG</td><td>Solicitud de informe incidente Cloudflare  Sábado/Domingo</td><td>A fazer</td></tr><tr><td><b>#6127</b></td><td>63d</td><td>LHG</td><td>Incidencia en portal de visualización de cámaras</td><td>A fazer</td></tr><tr><td><b>#6126</b></td><td>63d</td><td>TRUSS INTELLIGENCE</td><td>RE: Incidencia en portal de visualización de cámaras</td><td>A fazer</td></tr><tr><td><b>#5748</b></td><td>63d</td><td>LHG</td><td>ERROR AL ACTUALIZAR LA PAGINA DE TRUSS</td><td>A fazer</td></tr><tr><td><b>#5402</b></td><td>63d</td><td>LHG</td><td>Consulta API WLive - Métricas -TRUSS LHG</td><td>A fazer</td></tr><tr><td><b>#6164</b></td><td>62d</td><td>LHG</td><td>Mantenimiento de sondas </td><td>A fazer</td></tr><tr><td><b>#6235</b></td><td>59d</td><td>LHG</td><td>Cámaras Sin trasmitir - Don Eduardo</td><td>A fazer</td></tr><tr><td><b>#6366</b></td><td>53d</td><td>LHG</td><td>Barrancabermeja, desvío de cámara (no hay grabación del mome</td><td>A fazer</td></tr><tr><td><b>#6410</b></td><td>50d</td><td>LHG</td><td>Falla de internet en Cavalier II (07/06)</td><td>A fazer</td></tr></tbody></table>
+  </section>
+
+  <section>
+    <h2>3. "A fazer" parados - ninguem comecou</h2>
+    <p class="sub">Chamados que ninguem iniciou, acima de 2 dias. Mostrando os 15 mais antigos.</p>
+    <table><thead><tr><th>Chamado</th><th>Parado</th><th>Cliente</th><th>Assunto</th><th>Tecnico</th></tr></thead><tbody><tr><td><b>#3955</b></td><td><span class='badge b-vermelho'>98d</span></td><td>LHG</td><td>Remolcador Zambrano AP Offline</td><td>Jean Carvalho Moraes Carvalho</td></tr><tr><td><b>#3975</b></td><td><span class='badge b-vermelho'>97d</span></td><td>LHG</td><td>Instalacion de NVD E Inversor, terminal Galileosky</td><td>SEM TECNICO</td></tr><tr><td><b>#3980</b></td><td><span class='badge b-vermelho'>96d</span></td><td>LHG</td><td>Instalação de rele de ups</td><td>SEM TECNICO</td></tr><tr><td><b>#4106</b></td><td><span class='badge b-vermelho'>90d</span></td><td>LHG</td><td>Rio Miranda - Manunteção Sealtube cabo da Starlink</td><td>Marco Aurelio Brito</td></tr><tr><td><b>#5346</b></td><td><span class='badge b-vermelho'>76d</span></td><td>LHG</td><td>Problema de Acceso Plataforma Monitoreo Camaras</td><td>SEM TECNICO</td></tr><tr><td><b>#5347</b></td><td><span class='badge b-vermelho'>75d</span></td><td>LHG</td><td>Cavalier II - Galileusky  Off-line</td><td>Jean Carvalho Moraes Carvalho</td></tr><tr><td><b>#5349</b></td><td><span class='badge b-vermelho'>70d</span></td><td>LHG</td><td>Mantenimiento correctivo</td><td>SEM TECNICO</td></tr><tr><td><b>#6163</b></td><td><span class='badge b-vermelho'>63d</span></td><td>LHG</td><td>Mantenimiento correctivo</td><td>SEM TECNICO</td></tr><tr><td><b>#6149</b></td><td><span class='badge b-vermelho'>63d</span></td><td>LHG</td><td>GEOLOCALIZACIÓN DESACTUALIZADA HACE 5 HORAS</td><td>SEM TECNICO</td></tr><tr><td><b>#6142</b></td><td><span class='badge b-vermelho'>63d</span></td><td>LHG</td><td>Solicitud de informe incidente Cloudflare  Sábado/Domingo</td><td>SEM TECNICO</td></tr><tr><td><b>#6127</b></td><td><span class='badge b-vermelho'>63d</span></td><td>LHG</td><td>Incidencia en portal de visualización de cámaras</td><td>SEM TECNICO</td></tr><tr><td><b>#6126</b></td><td><span class='badge b-vermelho'>63d</span></td><td>TRUSS INTELLIGENCE</td><td>RE: Incidencia en portal de visualización de cámaras</td><td>SEM TECNICO</td></tr><tr><td><b>#5748</b></td><td><span class='badge b-vermelho'>63d</span></td><td>LHG</td><td>ERROR AL ACTUALIZAR LA PAGINA DE TRUSS</td><td>SEM TECNICO</td></tr><tr><td><b>#5402</b></td><td><span class='badge b-vermelho'>63d</span></td><td>LHG</td><td>Consulta API WLive - Métricas -TRUSS LHG</td><td>SEM TECNICO</td></tr><tr><td><b>#6164</b></td><td><span class='badge b-vermelho'>62d</span></td><td>LHG</td><td>Mantenimiento de sondas </td><td>SEM TECNICO</td></tr></tbody></table>
+  </section>
+
+  <section>
+    <h2>4. Carga em aberto por tecnico</h2>
+    <p class="sub">Quantidade de chamados em aberto por tecnico (criticos entre parenteses).</p>
+    <div class='barra-linha'><span class='barra-rot'>Celso  Luis (8 crit.)</span><span class='barra-trilho'><span class='barra-fill' style='width:44.0%;background:#2a78d6'></span></span><span class='barra-val'>11</span></div><div class='barra-linha'><span class='barra-rot'>Jean Carvalho Moraes Carvalho (6 crit.)</span><span class='barra-trilho'><span class='barra-fill' style='width:64.0%;background:#2a78d6'></span></span><span class='barra-val'>16</span></div><div class='barra-linha'><span class='barra-rot'>Luiz Silva Lopes Filho (5 crit.)</span><span class='barra-trilho'><span class='barra-fill' style='width:52.0%;background:#2a78d6'></span></span><span class='barra-val'>13</span></div><div class='barra-linha'><span class='barra-rot'>Oscar Pinho (3 crit.)</span><span class='barra-trilho'><span class='barra-fill' style='width:20.0%;background:#2a78d6'></span></span><span class='barra-val'>5</span></div><div class='barra-linha'><span class='barra-rot'>José Cordeiro Cordeiro (1 crit.)</span><span class='barra-trilho'><span class='barra-fill' style='width:100.0%;background:#2a78d6'></span></span><span class='barra-val'>25</span></div><div class='barra-linha'><span class='barra-rot'>Bruno  Cavalcante (1 crit.)</span><span class='barra-trilho'><span class='barra-fill' style='width:8.0%;background:#2a78d6'></span></span><span class='barra-val'>2</span></div><div class='barra-linha'><span class='barra-rot'>Marco Aurelio Brito (1 crit.)</span><span class='barra-trilho'><span class='barra-fill' style='width:8.0%;background:#2a78d6'></span></span><span class='barra-val'>2</span></div><div class='barra-linha'><span class='barra-rot'>Flavio Junqueira</span><span class='barra-trilho'><span class='barra-fill' style='width:20.0%;background:#2a78d6'></span></span><span class='barra-val'>5</span></div><div class='barra-linha'><span class='barra-rot'>Jorge Paulo Barrelin</span><span class='barra-trilho'><span class='barra-fill' style='width:8.0%;background:#2a78d6'></span></span><span class='barra-val'>2</span></div>
+  </section>
+
+  <section>
+    <h2>5. Causa raiz - ativos que mais caem x OS corretiva parada</h2>
+    <p class="sub">Ativos com 5+ quedas em 90 dias. OS parada significa que a correcao definitiva nao anda.</p>
+    <table><thead><tr><th>Ativo</th><th>Quedas 90d</th><th>OS corretiva</th><th>Parada ha</th></tr></thead><tbody><tr><td>Rio Miranda</td><td><b>166</b></td><td>#4106 A fazer</td><td><span class='badge b-vermelho'>90d</span></td></tr><tr><td>Morro Alto</td><td><b>161</b></td><td>#6237 A fazer</td><td><span class='badge b-vermelho'>59d</span></td></tr><tr><td>Itaipu</td><td><b>133</b></td><td>#6561 Pausado</td><td><span class='badge b-vermelho'>24d</span></td></tr><tr><td>Penelope</td><td><b>115</b></td><td>#2529 Atendendo</td><td><span class='badge b-vermelho'>172d</span></td></tr><tr><td>Rio Taquari</td><td><b>106</b></td><td>#1946 Pausado</td><td><span class='badge b-vermelho'>194d</span></td></tr><tr><td>Jan Connor</td><td><b>106</b></td><td>#5352 Atendendo</td><td><span class='badge b-vermelho'>70d</span></td></tr><tr><td>Morro Azul</td><td><b>106</b></td><td>#6417 A fazer</td><td><span class='badge b-vermelho'>48d</span></td></tr><tr><td>Julie</td><td><b>102</b></td><td>#6425 Pausado</td><td><span class='badge b-vermelho'>47d</span></td></tr><tr><td>Don Kasbergen</td><td><b>90</b></td><td>#6432 A fazer</td><td><span class='badge b-vermelho'>46d</span></td></tr><tr><td>Don Eduardo</td><td><b>89</b></td><td>#3716 Pausado</td><td><span class='badge b-vermelho'>112d</span></td></tr><tr><td>Gamarra</td><td><b>78</b></td><td>#6454 Atendendo</td><td><span class='badge b-vermelho'>40d</span></td></tr><tr><td>Soledad</td><td><b>76</b></td><td>#6238 A fazer</td><td><span class='badge b-vermelho'>59d</span></td></tr><tr><td>Heraclito</td><td><b>75</b></td><td>#3551 Pausado</td><td><span class='badge b-vermelho'>119d</span></td></tr><tr><td>Cavalier II</td><td><b>73</b></td><td>#5347 A fazer</td><td><span class='badge b-vermelho'>75d</span></td></tr><tr><td>La Gloria</td><td><b>73</b></td><td>#6512 A fazer</td><td><span class='badge b-vermelho'>31d</span></td></tr><tr><td>Titan</td><td><b>66</b></td><td>#2911 Atendendo</td><td><span class='badge b-vermelho'>152d</span></td></tr><tr><td>Don Cavalier VI</td><td><b>64</b></td><td>-</td><td>-</td></tr><tr><td>El Banco</td><td><b>64</b></td><td>#6923 A fazer</td><td><span class='badge b-vermelho'>0d</span></td></tr><tr><td>Cantagallo</td><td><b>63</b></td><td>-</td><td>-</td></tr><tr><td>Mompox</td><td><b>62</b></td><td>#6929 A fazer</td><td><span class='badge b-vermelho'>0d</span></td></tr><tr><td>Barrancabermeja</td><td><b>61</b></td><td>#6366 A fazer</td><td><span class='badge b-vermelho'>53d</span></td></tr><tr><td>Barranquilla</td><td><b>59</b></td><td>#6896 A fazer</td><td><span class='badge b-vermelho'>3d</span></td></tr><tr><td>Puerto Salgar</td><td><b>56</b></td><td>-</td><td>-</td></tr><tr><td>Urucum</td><td><b>56</b></td><td>#6581 Pausado</td><td><span class='badge b-vermelho'>21d</span></td></tr><tr><td>Zambrano</td><td><b>54</b></td><td>#3955 A fazer</td><td><span class='badge b-vermelho'>98d</span></td></tr><tr><td>Don Raul</td><td><b>53</b></td><td>#6922 A fazer</td><td><span class='badge b-vermelho'>0d</span></td></tr><tr><td>Cavalier VI</td><td><b>23</b></td><td>#6509 A fazer</td><td><span class='badge b-vermelho'>31d</span></td></tr></tbody></table>
+  </section>
+
+  <footer>Gerado automaticamente a partir da base local do Milvus. Rode a opcao 8 e depois a 11 para atualizar.</footer>
+</div>
+</body>
+</html>
