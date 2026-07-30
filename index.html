@@ -210,6 +210,11 @@
     .cmp .col.atual .num { font-size:1.55rem; }
     .delta { order:3; flex:1 1 100%; text-align:center; justify-self:center;
              padding:2px 8px; font-size:.7rem; }
+    /* graficos: sem largura minima e colunas mais compactas */
+    .chart-wrap svg { min-width:0 !important; }
+    .hb-fila { grid-template-columns:88px 1fr 76px; gap:6px; font-size:.72rem; }
+    .hb-val { font-size:.66rem; }
+    .rk-fila { grid-template-columns:22px 88px 1fr 52px; gap:6px; font-size:.72rem; }
     .faixa { font-size:.7rem; padding:7px 10px; gap:4px 10px; }
     .card { padding:14px 14px; }
     /* filtros recolhidos por padrao */
@@ -241,7 +246,7 @@
     <h1>Painel de Operações — TRUSS<span class="tag-int">USO INTERNO</span>
       <small>Todos os chamados do Milvus · clique num ticket para ver a ficha completa</small></h1>
     <div class="h-dir">
-      <div class="h-fechas">Gerado: 30/07/2026 19:20<br>Base atualizada: 2026-07-30 19:20:38</div>
+      <div class="h-fechas">Gerado: 30/07/2026 19:22<br>Base atualizada: 2026-07-30 19:20:38</div>
       <button class="btn-fs" id="btn-tv" onclick="iniciarTV()" title="Rodízio automático de telas, sem mouse (Esc para sair)">▶ Apresentação</button>
       <button class="btn-fs" id="btn-fs" onclick="telaCheia()" title="Alternar tela cheia (Esc para sair)">⛶ Tela cheia</button>
     </div>
@@ -550,13 +555,17 @@ function colunas(cont, dados){
   cont.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:520px;display:block" xmlns="http://www.w3.org/2000/svg">${s}</svg>`;
 }
 
+function telaEstreita(){ return window.matchMedia('(max-width:640px)').matches; }
+
 function evolucao(ls){
   const cri={}, res={};
   ls.forEach(t=>{
     if(t.cr) cri[t.cr.slice(0,7)]=(cri[t.cr.slice(0,7)]||0)+1;
     if(t.rs) res[t.rs.slice(0,7)]=(res[t.rs.slice(0,7)]||0)+1;
   });
-  const meses=[...new Set([...Object.keys(cri),...Object.keys(res)])].sort().slice(-12);
+  // celular em pe: 6 meses para as colunas continuarem legiveis
+  const nMeses=telaEstreita()?6:12;
+  const meses=[...new Set([...Object.keys(cri),...Object.keys(res)])].sort().slice(-nMeses);
   colunas(document.getElementById('evolucao'), meses.map(m=>{
     const [a,mm]=m.split('-');
     return {lbl:`${MES_PT[+mm-1]}/${a.slice(2)}${m==='2026-05'?'*':''}`, a:cri[m]||0, b:res[m]||0};
@@ -884,6 +893,8 @@ function render(){
 }
 iniciarFiltros();
 render();
+// re-renderiza ao girar o celular / mudar o tamanho da tela
+window.matchMedia('(max-width:640px)').addEventListener('change',()=>{ if(!tv.on) render(); });
 </script>
 </body>
 </html>
