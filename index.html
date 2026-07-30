@@ -377,25 +377,34 @@ function kpis(lsT,lsF){
   const tmrArr=f30.map(t=>t.d).filter(d=>d!=null);
   const tmr=tmrArr.length?(tmrArr.reduce((a,b)=>a+b,0)/tmrArr.length).toFixed(1):null;
   const dentro2d=tmrArr.length?Math.round(tmrArr.filter(d=>d<=2).length/tmrArr.length*100):null;
-  const vs=(a,b)=>{ const dif=a-b;
-    return dif===0?'= semana anterior':`<b class="${dif>0?'mal':'bem'}">${dif>0?'+':''}${dif}</b> vs sem. anterior`; };
-  const items=[
-    [abertos.length,'Tickets abertos','var(--rojo)',
-      `${crit} críticos`],
-    [`${fora}<small> · ${pctFora}%</small>`,'Fora do prazo','var(--ambar)',
-      '% dos abertos'],
+  // Idade media do backlog aberto (average backlog age - HDI/MetricNet)
+  const idades=abertos.map(t=>t.d??0);
+  const idadeMedia=idades.length?(idades.reduce((a,b)=>a+b,0)/idades.length).toFixed(1):null;
+  const maisAntigo=idades.length?Math.max(...idades):null;
+  // Taxa de resolucao 7d (throughput ratio - ITIL): resolvidos / criados
+  const taxa=cri7?Math.round(res7/cri7*100):(res7?null:0);
+  const taxa14=cri14?Math.round(res14/cri14*100):null;
+  const varTaxa=(taxa!=null&&taxa14!=null)?taxa-taxa14:null;
+  const kpi=([n,l,c,e])=>`<div class="kpi" style="--acc:${c}"><div class="num">${n}</div><div class="lbl">${l}</div><div class="extra">${e||''}</div></div>`;
+
+  document.getElementById('kpis-estoque').innerHTML=[
+    [abertos.length,'Tickets abertos','var(--rojo)', `${crit} críticos`],
+    [`${fora}<small> · ${pctFora}%</small>`,'Fora do prazo','var(--ambar)', '% dos abertos'],
     [semTec,'Sem técnico','var(--rojo)',
       semTec?'<b class="mal">exigem atribuição</b>':'todos atribuídos'],
-    [cri7,'Criados últimos 7d','var(--azul2)', vs(cri7,cri14)],
-    [res7,'Resolvidos últimos 7d','var(--verde)',
+    [idadeMedia!=null?`${idadeMedia}<small> d</small>`:'—','Idade média dos abertos','var(--roxo)',
+      maisAntigo!=null?`mais antigo: ${maisAntigo}d`:''],
+  ].map(kpi).join('');
+
+  document.getElementById('kpis-fluxo').innerHTML=[
+    [taxa!=null?`${taxa}<small>%</small>`:'—','Taxa de resolução (7d)', taxa>=100?'var(--verde)':'var(--ambar)',
+      `${res7} resolvidos ÷ ${cri7} criados`+
+      (varTaxa!=null?` · <b class="${varTaxa<0?'mal':'bem'}">${varTaxa>0?'+':''}${varTaxa}pp</b> vs sem. ant.`:'')],
+    [res7,'Vazão semanal','var(--verde)',
       res7-res14===0?'= semana anterior':`<b class="${res7-res14<0?'mal':'bem'}">${res7-res14>0?'+':''}${res7-res14}</b> vs sem. anterior`],
-    [`${saldo>0?'+':''}${saldo}`,'Saldo da semana','var(--roxo)',
-      saldo>0?'tickets abertos crescendo':(saldo<0?'tickets abertos caindo':'estável')],
     [tmr!=null?`${tmr}<small> d</small>`:'—','TMR (resolvidos 30d)','var(--azul2)',
       dentro2d!=null?`${dentro2d}% em até 2 dias`:''],
-  ];
-  document.getElementById('kpis').innerHTML =
-    items.map(([n,l,c,e])=>`<div class="kpi" style="--acc:${c}"><div class="num">${n}</div><div class="lbl">${l}</div><div class="extra">${e||''}</div></div>`).join('');
+  ].map(kpi).join('');
 }
 
 /* ---------- graficos ---------- */
