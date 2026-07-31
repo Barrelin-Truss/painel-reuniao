@@ -50,6 +50,10 @@
   body.tv table { font-size:1rem; }
   body.tv .badge { font-size:.85rem; }
   body.tv .hb-fila { font-size:.95rem; }
+  body.tv .wl-fila { font-size:.95rem; padding:8px 2px; }
+  body.tv .wl-fila .badge { font-size:.78rem; }
+  body.tv .sec-titulo { font-size:.9rem; }
+  body.tv .scroll-carta { max-height:none; }
   body.tv .scroll-tabla { max-height:none; }
   body.tv .conteo { font-size:.95rem; }
   #tv-info { display:none; position:fixed; right:22px; bottom:18px; z-index:60;
@@ -177,15 +181,24 @@
   /* rolagem padrao dentro dos quadrantes - mantem o dashboard compacto */
   .scroll-carta { max-height:340px; overflow:auto; padding-right:4px; }
 
-  /* linhas do bloco Wialon */
-  .wl-fila { display:flex; align-items:baseline; gap:8px; padding:7px 2px;
-             border-bottom:1px solid #f0f0f0; font-size:.8rem; }
+  /* titulos de secao (mesma linguagem dos grupos de KPI) */
+  .sec-titulo { grid-column:1/-1; font-size:.72rem; font-weight:700; color:var(--gris);
+                text-transform:uppercase; letter-spacing:.6px; margin:2px 2px -8px; }
+
+  /* linhas do bloco Wialon - mesma linguagem das barras do resto do painel */
+  .wl-fila { display:grid; grid-template-columns:minmax(110px,1.3fr) 1fr auto 44px;
+             align-items:center; gap:8px; padding:6px 2px;
+             border-bottom:1px solid #f0f0f0; font-size:.78rem; }
   .wl-fila:last-child { border-bottom:none; }
-  .wl-nome { font-weight:600; flex:1; min-width:0; overflow:hidden;
+  .wl-simples { grid-template-columns:1fr auto; }
+  .wl-nome { font-weight:600; min-width:0; overflow:hidden;
              text-overflow:ellipsis; white-space:nowrap; }
-  .wl-emp { color:var(--gris); font-size:.7rem; }
-  .wl-h { font-weight:700; white-space:nowrap; }
-  .wl-fila .badge { font-size:.64rem; padding:2px 8px; }
+  .wl-emp { color:var(--gris); font-size:.68rem; font-weight:400; }
+  .wl-pista { display:block; background:#edf1f8; border-radius:999px; height:9px; overflow:hidden; }
+  .wl-barra { display:block; height:100%; border-radius:999px; min-width:4px; }
+  .wl-h { font-weight:700; white-space:nowrap; text-align:right;
+          font-variant-numeric:tabular-nums; }
+  .wl-fila .badge { font-size:.62rem; padding:2px 8px; justify-self:end; }
   .wl-tk { cursor:pointer; }
   .wl-tk:hover { background:#f6f6f6; }
 
@@ -248,6 +261,12 @@
     .hb-fila { grid-template-columns:88px 1fr 76px; gap:6px; font-size:.72rem; }
     .hb-val { font-size:.66rem; }
     .rk-fila { grid-template-columns:22px 88px 1fr 52px; gap:6px; font-size:.72rem; }
+    /* telemetria: some a barra, sobra nome + selo + dias */
+    .wl-fila { grid-template-columns:minmax(90px,1.4fr) auto 40px; font-size:.72rem; }
+    .wl-fila .wl-pista { display:none; }
+    .wl-simples { grid-template-columns:1fr auto; }
+    .scroll-carta { max-height:300px; }
+    .sec-titulo { font-size:.66rem; }
     .faixa { font-size:.7rem; padding:7px 10px; gap:4px 10px; }
     .card { padding:14px 14px; }
     /* filtros recolhidos por padrao */
@@ -272,7 +291,7 @@
         <small>Todos os chamados do Milvus · clique num ticket para ver a ficha completa</small></h1>
     </div>
     <div class="h-dir">
-      <div class="h-fechas">Gerado: 31/07/2026 10:39<br>Base atualizada: 2026-07-31 10:39:03</div>
+      <div class="h-fechas">Gerado: 31/07/2026 10:41<br>Base atualizada: 2026-07-31 10:39:03</div>
       <button class="btn-fs" id="btn-tv" onclick="iniciarTV()" title="Rodízio automático de telas, sem mouse (Esc para sair)">▶ Apresentação</button>
       <button class="btn-fs" id="btn-fs" onclick="telaCheia()" title="Alternar tela cheia (Esc para sair)">⛶ Tela cheia</button>
     </div>
@@ -313,6 +332,7 @@
   <div class="kpis" id="kpis-fluxo"></div>
 
   <div class="grid2" id="fila1">
+    <div class="sec-titulo">Tendências</div>
     <div class="card">
       <h2>Evolução mensal</h2>
       <div class="desc">Criados vs. resolvidos, últimos 12 meses — fluxo completo, independe do filtro de status</div>
@@ -331,17 +351,20 @@
   </div>
 
   <div class="grid3" id="fila2">
+    <div class="sec-titulo">Equipe</div>
     <div class="card"><h2>Ranking semanal de atendimento</h2><div class="desc">Tickets resolvidos nos últimos 7 dias, por técnico</div><div id="g-rank"></div></div>
     <div class="card"><h2>Carga por técnico</h2><div class="desc">Abertos atribuídos — azul no prazo, amarelo fora do prazo</div><div id="g-tec"></div></div>
     <div class="card"><h2>Menor uso da plataforma</h2><div class="desc">Dias desde o último movimento real no Milvus · movimentos nos últimos 30 dias</div><div id="g-uso"></div></div>
   </div>
 
   <div class="grid2" id="fila3">
+    <div class="sec-titulo">Clientes e canais</div>
     <div class="card"><h2>Tickets abertos por cliente</h2><div class="desc">Situação de hoje (top 8)</div><div id="g-cli"></div></div>
     <div class="card"><h2>Por origem</h2><div class="desc">Canal de entrada dos tickets (histórico do filtro)</div><div id="g-org"></div></div>
   </div>
 
   <div class="grid3" id="fila-wl" style="display:none">
+    <div class="sec-titulo">Telemetria — Wialon</div>
     <div class="card">
       <h2>Disponibilidade por empresa</h2>
       <div class="desc">% da frota com telemetria que reportou nas últimas 24h · <span id="wl-stamp"></span></div>
@@ -967,8 +990,10 @@ function wialon(){
     `${wl.off_total} recentes, ${wl.sem_ticket} sem ticket`;
   document.getElementById('wl-top').innerHTML = wl.top.length? wl.top.map(a=>{
     const d=Math.round(a.h/24);
+    const pct=Math.max(6,Math.min(100,Math.round(a.h/(15*24)*100)));
     return `<div class="wl-fila ${a.tk?'wl-tk':''}" ${a.tk?`onclick="abrir(${a.tk})"`:''}>
       <span class="wl-nome" title="${esc(a.nome)}">${esc(a.nome)} <span class="wl-emp">${esc(a.emp)}</span></span>
+      <span class="wl-pista"><span class="wl-barra" style="width:${pct}%;background:linear-gradient(90deg,#e0a800,#c62828)"></span></span>
       ${a.tk?`<span class="badge b-aten">#${a.tk}</span>`:'<span class="badge b-crit">SEM TICKET</span>'}
       <span class="wl-h ${d>7?'dias-alto':'dias-medio'}">${d}d</span>
     </div>`;
@@ -979,12 +1004,12 @@ function wialon(){
     `<div class="nota" style="margin-top:10px">${wl.desat_total} ativo(s) offline há +15 dias — provável desativação, fora da cobrança:</div>
      <div class="scroll-carta" style="max-height:120px;margin-top:4px">`+
      desat.map(a=>{ const d=Math.round(a.h/24);
-       return `<div class="wl-fila"><span class="wl-nome" title="${esc(a.nome)}">${esc(a.nome)} <span class="wl-emp">${esc(a.emp)}</span></span>
+       return `<div class="wl-fila wl-simples"><span class="wl-nome" style="color:var(--gris)" title="${esc(a.nome)}">${esc(a.nome)} <span class="wl-emp">${esc(a.emp)}</span></span>
          <span class="wl-h" style="color:var(--gris)">${d}d</span></div>`;
      }).join('')+`</div>`:'';
   // tickets de ativos que voltaram
   document.getElementById('wl-voltou').innerHTML = wl.voltou.length? wl.voltou.map(v=>`
-    <div class="wl-fila wl-tk" onclick="abrir(${v.c})">
+    <div class="wl-fila wl-simples wl-tk" onclick="abrir(${v.c})">
       <span class="wl-nome" title="${esc(v.as)}">#${v.c} · ${esc(v.as)}</span>
       <span class="badge b-ok">reportou há ${v.h}h</span>
     </div>`).join(''):'<div class="vacio">Nenhum ticket aberto de ativo que já voltou a reportar.</div>';
