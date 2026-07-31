@@ -978,34 +978,60 @@ function faixaBase(lsT){
       :'<span class="chip">sem filtros — base completa</span>');
 }
 
-/* ---------- bloco Wialon (telemetria) ---------- */
+/* ---------- bloco Wialon (telemetria) — conectado ao filtro de cliente ---------- */
+const MAPA_CLI_EMP={'LHG':'LHG','CVC':'CVC','GRUPO KEILLA':'Grupo Keilla',
+  'PORTONAVE':'Portonave','TRUSS INTELLIGENCE':'TRUSS','NORTE TECH':'Norte Tech'};
 function wialon(){
   const wl=D.wl;
   if(!wl){ return; }
   document.getElementById('fila-wl').style.display='';
   document.getElementById('wl-stamp').textContent=`sonda de ${fmtDH(wl.stamp)}`;
-  // disponibilidade por empresa
-  const max=Math.max(...wl.disp.map(d=>d.tot),1);
-  document.getElementById('wl-disp').innerHTML=wl.disp.map(d=>{
+  const cliVal=(document.getElementById('f-cli').value||'').trim();
+  const empSel=cliVal?MAPA_CLI_EMP[cliVal.toUpperCase()]:null;
+  const semFrota=!!cliVal && !empSel;
+  const at=semFrota?[]:(empSel?wl.ativos.filter(a=>a.emp===empSel):wl.ativos);
+  const vazioMsg=semFrota?'Cliente sem frota na telemetria Wialon.':null;
+
+  // disponibilidade por empresa (<24h)
+  const dm={};
+  at.forEach(a=>{
+    const d0=dm[a.emp]=dm[a.emp]||{on:0,tot:0,sem:0};
+    d0.tot++;
+    if(a.h===null) d0.sem++;
+    else if(a.h<24) d0.on++;
+  });
+  const disp=Object.entries(dm).map(([emp,v])=>({emp,...v})).sort((a,b)=>b.tot-a.tot);
+  const semLeitura=disp.reduce((s,d)=>s+d.sem,0);
+  document.getElementById('wl-disp').innerHTML = disp.length? disp.map(d=>{
     const pct=d.tot?Math.round(d.on/d.tot*100):0;
     const cor=pct>=80?'linear-gradient(90deg,#2e7d32,#43a047)':(pct>=50?'linear-gradient(90deg,#e0a800,#f0c030)':'linear-gradient(90deg,#a32020,#c62828)');
     return `<div class="hb-fila"><span title="${esc(d.emp)}">${esc(d.emp)}</span>
       <span class="hb-pista"><span class="hb-barra" style="width:${pct}%;background:${cor}"></span></span>
       <span class="hb-val"><b>${d.on}/${d.tot}</b> · ${pct}%</span></div>`;
-  }).join('')+(wl.sem_leitura?`<div class="nota">${wl.sem_leitura} ativos com telemetria sem leitura na sonda (nome divergente ou removido do Wialon).</div>`:'');
-  // top offline (recentes: 24h a 15 dias)
+  }).join('')+(semLeitura?`<div class="nota">${semLeitura} ativo(s) com telemetria sem leitura na sonda (nome divergente ou removido do Wialon).</div>`:'')
+    :`<div class="vacio">${vazioMsg||'Sem ativos no filtro.'}</div>`;
+
+  // offline: pontos cegos (24h a 15d) x provaveis desativados (+15d)
+  const LIM_DESAT=15*24;
+  const off=at.filter(a=>a.h!==null&&a.h>=24).sort((a,b)=>b.h-a.h);
+  const recentes=off.filter(a=>a.h<=LIM_DESAT);
+  const desat=off.filter(a=>a.h>LIM_DESAT);
   document.getElementById('wl-off-res').textContent=
-    `${wl.off_total} recentes, ${wl.sem_ticket} sem ticket`;
-  document.getElementById('wl-top').innerHTML = wl.top.length? wl.top.map(a=>{
+    `${recentes.length} recentes, ${recentes.filter(a=>!a.tk).length} sem ticket`;
+  document.getElementById('wl-top').innerHTML = recentes.length? recentes.slice(0,20).map(a=>{
     const d=Math.round(a.h/24);
     return `<div class="wl-fila ${a.tk?'wl-tk':''}" ${a.tk?`onclick="abrir(${a.tk})"`:''}>
       <span class="wl-nome" title="${esc(a.nome)}">${esc(a.nome)} <span class="wl-emp">${esc(a.emp)}</span></span>
       ${a.tk?`<span class="badge b-aten">#${a.tk}</span>`:'<span class="badge b-crit">SEM TICKET</span>'}
       <span class="wl-h ${d>7?'dias-alto':'dias-medio'}">${d}d</span>
     </div>`;
-  }).join(''):'<div class="vacio">Nenhum ativo offline entre 24h e 15 dias. 👏</div>';
-  // offline por empresa (barra empilhada: pontos cegos x desativados)
-  const oe=wl.offemp||[];
+  }).join(''):`<div class="vacio">${vazioMsg||'Nenhum ativo offline entre 24h e 15 dias. 👏'}</div>`;
+
+  // offline por empresa (barra empilhada)
+  const om={};
+  recentes.forEach(a=>{(om[a.emp]=om[a.emp]||{rec:0,des:0}).rec++;});
+  desat.forEach(a=>{(om[a.emp]=om[a.emp]||{rec:0,des:0}).des++;});
+  const oe=Object.entries(om).map(([emp,v])=>({emp,...v})).sort((a,b)=>(b.rec+b.des)-(a.rec+a.des));
   const maxOe=Math.max(...oe.map(o=>o.rec+o.des),1);
   document.getElementById('wl-offemp').innerHTML = oe.length? oe.map(o=>`
     <div class="hb-fila"><span title="${esc(o.emp)}">${esc(o.emp)}</span>
@@ -1014,22 +1040,24 @@ function wialon(){
         <span style="display:block;height:100%;width:${Math.round(o.des/maxOe*100)}%;background:#c9c9c9"></span>
       </span>
       <span class="hb-val"><b>${o.rec}</b>${o.des?` · ${o.des} desat.`:''}</span></div>`).join('')
-    :'<div class="vacio">Nenhum ativo offline. 👏</div>';
-  // provavel desativacao: offline ha mais de 15 dias (fora da cobranca)
-  const desat=wl.desativados||[];
+    :`<div class="vacio">${vazioMsg||'Nenhum ativo offline. 👏'}</div>`;
+
+  // provavel desativacao (lista compacta)
   document.getElementById('wl-desat').innerHTML = desat.length?
-    `<div class="nota" style="margin-top:10px">${wl.desat_total} ativo(s) offline há +15 dias — provável desativação, fora da cobrança:</div>
+    `<div class="nota" style="margin-top:10px">${desat.length} ativo(s) offline há +15 dias — provável desativação, fora da cobrança:</div>
      <div class="scroll-carta" style="max-height:120px;margin-top:4px">`+
-     desat.map(a=>{ const d=Math.round(a.h/24);
+     desat.slice(0,20).map(a=>{ const d=Math.round(a.h/24);
        return `<div class="wl-fila wl-simples"><span class="wl-nome" style="color:var(--gris)" title="${esc(a.nome)}">${esc(a.nome)} <span class="wl-emp">${esc(a.emp)}</span></span>
          <span class="wl-h" style="color:var(--gris)">${d}d</span></div>`;
      }).join('')+`</div>`:'';
-  // tickets de ativos que voltaram
-  document.getElementById('wl-voltou').innerHTML = wl.voltou.length? wl.voltou.map(v=>`
+
+  // correlacao: tickets de ativos que voltaram a reportar
+  const voltou=semFrota?[]:(empSel?wl.voltou.filter(v=>v.emp===empSel):wl.voltou);
+  document.getElementById('wl-voltou').innerHTML = voltou.length? voltou.map(v=>`
     <div class="wl-fila wl-simples wl-tk" onclick="abrir(${v.c})">
       <span class="wl-nome" title="${esc(v.as)}">#${v.c} · ${esc(v.as)}</span>
       <span class="badge b-ok">reportou há ${v.h}h</span>
-    </div>`).join(''):'<div class="vacio">Nenhum ticket aberto de ativo que já voltou a reportar.</div>';
+    </div>`).join(''):`<div class="vacio">${vazioMsg||'Nenhum ticket aberto de ativo que já voltou a reportar.'}</div>`;
 }
 
 /* ---------- render ---------- */
