@@ -241,7 +241,10 @@
   footer { text-align:center; font-size:.72rem; color:var(--gris); padding:18px; }
 
   /* ---------- celular ---------- */
-  #btn-filtros { display:none; }
+  /* filtros minimizaveis em qualquer tela: fechado por padrao no celular,
+     aberto por padrao no desktop (o JS define o estado inicial) */
+  #sec-filtros .filtros { display:none; }
+  #sec-filtros.aberto .filtros { display:grid; }
   @media (max-width:640px){
     main { padding:12px 10px 40px; }
     header { padding:12px 14px 10px; }
@@ -273,9 +276,6 @@
     .faixa { font-size:.7rem; padding:7px 10px; gap:4px 10px; }
     .card { padding:14px 14px; }
     /* filtros recolhidos por padrao */
-    #btn-filtros { display:inline-block; }
-    #sec-filtros .filtros { display:none; }
-    #sec-filtros.aberto .filtros { display:grid; }
     /* no celular a lista de tickets usa cartoes nativos (.tk),
        tambem com janela reduzida e rolagem interna */
     .tk-lista { max-height:420px; overflow:auto; padding-right:2px; }
@@ -296,7 +296,7 @@
         <small>Todos os chamados do Milvus · clique num ticket para ver a ficha completa</small></h1>
     </div>
     <div class="h-dir">
-      <div class="h-fechas">Gerado: 05/08/2026 12:50<br>Base atualizada: 2026-08-05 12:50:02</div>
+      <div class="h-fechas">Gerado: 05/08/2026 13:08<br>Base atualizada: 2026-08-05 13:00:03</div>
       <button class="btn-fs" id="btn-tv" onclick="iniciarTV()" title="Rodízio automático de telas, sem mouse (Esc para sair)">▶ Apresentação</button>
       <button class="btn-fs" id="btn-fs" onclick="telaCheia()" title="Alternar tela cheia (Esc para sair)">⛶ Tela cheia</button>
     </div>
@@ -479,12 +479,15 @@ function limpar(){
     .forEach(id=>document.getElementById(id).value='');
   render();
 }
-function toggleFiltros(){
+function toggleFiltros(forcar){
   const sec=document.getElementById('sec-filtros');
-  sec.classList.toggle('aberto');
+  if(forcar==='abrir') sec.classList.add('aberto');
+  else sec.classList.toggle('aberto');
   document.getElementById('btn-filtros').textContent =
     sec.classList.contains('aberto')?'Ocultar ▴':'Mostrar ▾';
 }
+// estado inicial: aberto no desktop, recolhido no celular
+if(!telaEstreita()) toggleFiltros('abrir');
 function filtrar(comStatus=true){
   const v=id=>document.getElementById(id).value;
   const q=v('f-q').toLowerCase(), st=v('f-st'), cli=v('f-cli'), tec=v('f-tec'),
